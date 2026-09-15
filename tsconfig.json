@@ -12,8 +12,6 @@
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
     "paths": {"@/*": ["./src/*"]}
   }
 }
