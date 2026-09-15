@@ -2,8 +2,125 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-type Mode='entrar'|'cadastro'|'recuperar';
-export const Route=createFileRoute('/auth')({ssr:false,validateSearch:(s:Record<string,unknown>)=>({modo:(['entrar','cadastro','recuperar'].includes(String(s.modo))?s.modo:undefined) as Mode|undefined}),component:Auth});
-function Auth(){const search=Route.useSearch();const nav=useNavigate();const [mode,setMode]=useState<Mode>(search.modo??'entrar'),[name,setName]=useState(''),[email,setEmail]=useState(''),[pass,setPass]=useState(''),[confirm,setConfirm]=useState(''),[busy,setBusy]=useState(false);useEffect(()=>{void supabase.auth.getSession().then(({data})=>{if(data.session)nav({to:'/painel',replace:true})})},[nav]);
-async function submit(e:React.FormEvent){e.preventDefault();if(mode==='recuperar'){if(!email)return toast.error('Informe o e-mail.');setBusy(true);const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${location.origin}/redefinir-senha`});setBusy(false);if(error)return toast.error(error.message);toast.success('Link de recuperação enviado quando o e-mail existir.');setMode('entrar');return}if(!email||!pass)return toast.error('Preencha e-mail e senha.');if(mode==='cadastro'){if(!name.trim())return toast.error('Informe o nome.');if(pass.length<6)return toast.error('Senha deve ter pelo menos 6 caracteres.');if(pass!==confirm)return toast.error('As senhas não conferem.');setBusy(true);const {data,error}=await supabase.auth.signUp({email,password:pass,options:{data:{nome:name.trim()},emailRedirectTo:location.origin}});setBusy(false);if(error)return toast.error(error.message);if(!data.session){toast.success('Conta criada. Confirme seu e-mail para entrar.');setMode('entrar');return}nav({to:'/painel',replace:true});return}setBusy(true);const {error}=await supabase.auth.signInWithPassword({email,password:pass});setBusy(false);if(error)return toast.error('E-mail ou senha inválidos.');nav({to:'/painel',replace:true});}
-return <div className="min-h-screen grid place-items-center p-4"><form className="card w-full max-w-md" onSubmit={submit}><h1 className="text-xl font-semibold">{mode==='cadastro'?'Criar conta':mode==='recuperar'?'Recuperar senha':'Entrar'}</h1>{mode==='cadastro'&&<label><span className="label">Nome</span><input className="input mt-1" value={name} onChange={e=>setName(e.target.value)}/></label>}<label className="block mt-3"><span className="label">E-mail</span><input className="input mt-1" type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label>{mode!=='recuperar'&&<label className="block mt-3"><span className="label">Senha</span><input className="input mt-1" type="password" value={pass} onChange={e=>setPass(e.target.value)}/></label>}{mode==='cadastro'&&<label className="block mt-3"><span className="label">Confirmar senha</span><input className="input mt-1" type="password" value={confirm} onChange={e=>setConfirm(e.target.value)}/></label>}<button className="btn w-full mt-4" disabled={busy}>{busy?'Aguarde...':mode==='cadastro'?'Criar conta':mode==='recuperar'?'Enviar link':'Entrar'}</button><div className="flex justify-between mt-4 text-sm"><button type="button" className="muted underline" onClick={()=>setMode(mode==='cadastro'?'entrar':'cadastro')}>{mode==='cadastro'?'Já tenho conta':'Criar conta'}</button><button type="button" className="muted underline" onClick={()=>setMode(mode==='recuperar'?'entrar':'recuperar')}>{mode==='recuperar'?'Voltar':'Esqueci a senha'}</button></div></form></div>}
+import { appUrl } from "@/lib/app-url";
+
+type Mode = "entrar" | "cadastro" | "recuperar";
+
+export const Route = createFileRoute("/auth")({
+  ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    modo: (["entrar", "cadastro", "recuperar"].includes(String(s.modo)) ? s.modo : undefined) as Mode | undefined,
+  }),
+  component: Auth,
+});
+
+function Auth() {
+  const search = Route.useSearch();
+  const nav = useNavigate();
+  const [mode, setMode] = useState<Mode>(search.modo ?? "entrar");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) nav({ to: "/painel", replace: true });
+    });
+  }, [nav]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (mode === "recuperar") {
+      if (!email) return toast.error("Informe o e-mail.");
+      setBusy(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: appUrl("redefinir-senha"),
+      });
+      setBusy(false);
+      if (error) return toast.error(error.message);
+      toast.success("Link de recuperação enviado quando o e-mail existir.");
+      setMode("entrar");
+      return;
+    }
+
+    if (!email || !pass) return toast.error("Preencha e-mail e senha.");
+
+    if (mode === "cadastro") {
+      if (!name.trim()) return toast.error("Informe o nome.");
+      if (pass.length < 6) return toast.error("Senha deve ter pelo menos 6 caracteres.");
+      if (pass !== confirm) return toast.error("As senhas não conferem.");
+
+      setBusy(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pass,
+        options: {
+          data: { nome: name.trim() },
+          emailRedirectTo: appUrl(),
+        },
+      });
+      setBusy(false);
+
+      if (error) return toast.error(error.message);
+      if (!data.session) {
+        toast.success("Conta criada. Confirme seu e-mail para entrar.");
+        setMode("entrar");
+        return;
+      }
+      nav({ to: "/painel", replace: true });
+      return;
+    }
+
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    setBusy(false);
+    if (error) return toast.error("E-mail ou senha inválidos.");
+    nav({ to: "/painel", replace: true });
+  }
+
+  return (
+    <div className="min-h-screen grid place-items-center p-4">
+      <form className="card w-full max-w-md" onSubmit={submit}>
+        <h1 className="text-xl font-semibold">
+          {mode === "cadastro" ? "Criar conta" : mode === "recuperar" ? "Recuperar senha" : "Entrar"}
+        </h1>
+        {mode === "cadastro" && (
+          <label>
+            <span className="label">Nome</span>
+            <input className="input mt-1" value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+        )}
+        <label className="block mt-3">
+          <span className="label">E-mail</span>
+          <input className="input mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        {mode !== "recuperar" && (
+          <label className="block mt-3">
+            <span className="label">Senha</span>
+            <input className="input mt-1" type="password" value={pass} onChange={(e) => setPass(e.target.value)} />
+          </label>
+        )}
+        {mode === "cadastro" && (
+          <label className="block mt-3">
+            <span className="label">Confirmar senha</span>
+            <input className="input mt-1" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+          </label>
+        )}
+        <button className="btn w-full mt-4" disabled={busy}>
+          {busy ? "Aguarde..." : mode === "cadastro" ? "Criar conta" : mode === "recuperar" ? "Enviar link" : "Entrar"}
+        </button>
+        <div className="flex justify-between mt-4 text-sm">
+          <button type="button" className="muted underline" onClick={() => setMode(mode === "cadastro" ? "entrar" : "cadastro")}>
+            {mode === "cadastro" ? "Já tenho conta" : "Criar conta"}
+          </button>
+          <button type="button" className="muted underline" onClick={() => setMode(mode === "recuperar" ? "entrar" : "recuperar")}>
+            {mode === "recuperar" ? "Voltar" : "Esqueci a senha"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
