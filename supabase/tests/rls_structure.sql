@@ -1,0 +1,42 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(34);
+
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='alerts'), 'RLS ativo em alerts');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='batches'), 'RLS ativo em batches');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='biofilter_readings'), 'RLS ativo em biofilter_readings');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='biofilter_tests'), 'RLS ativo em biofilter_tests');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='biometry_records'), 'RLS ativo em biometry_records');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='events'), 'RLS ativo em events');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='experiments'), 'RLS ativo em experiments');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='feed_products'), 'RLS ativo em feed_products');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='feed_records'), 'RLS ativo em feed_records');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='mbbr_configs'), 'RLS ativo em mbbr_configs');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='measurements'), 'RLS ativo em measurements');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='mineral_additions'), 'RLS ativo em mineral_additions');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='mineral_products'), 'RLS ativo em mineral_products');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='mortality_records'), 'RLS ativo em mortality_records');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='profiles'), 'RLS ativo em profiles');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='ras_systems'), 'RLS ativo em ras_systems');
+select ok((select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='reference_ranges'), 'RLS ativo em reference_ranges');
+
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='alerts' and qual::text like '%auth.uid()%'), 'alerts possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='batches' and qual::text like '%auth.uid()%'), 'batches possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='biofilter_readings' and qual::text like '%auth.uid()%'), 'biofilter_readings possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='biofilter_tests' and qual::text like '%auth.uid()%'), 'biofilter_tests possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='biometry_records' and qual::text like '%auth.uid()%'), 'biometry_records possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='events' and qual::text like '%auth.uid()%'), 'events possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='experiments' and qual::text like '%auth.uid()%'), 'experiments possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='feed_products' and qual::text like '%auth.uid()%'), 'feed_products possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='feed_records' and qual::text like '%auth.uid()%'), 'feed_records possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='mbbr_configs' and qual::text like '%auth.uid()%'), 'mbbr_configs possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='measurements' and qual::text like '%auth.uid()%'), 'measurements possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='mineral_additions' and qual::text like '%auth.uid()%'), 'mineral_additions possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='mineral_products' and qual::text like '%auth.uid()%'), 'mineral_products possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='mortality_records' and qual::text like '%auth.uid()%'), 'mortality_records possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='profiles' and qual::text like '%auth.uid()%'), 'profiles possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='ras_systems' and qual::text like '%auth.uid()%'), 'ras_systems possui política por auth.uid()');
+select ok(exists(select 1 from pg_policies where schemaname='public' and tablename='reference_ranges' and qual::text like '%auth.uid()%'), 'reference_ranges possui política por auth.uid()');
+
+select * from finish();
+rollback;
