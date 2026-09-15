@@ -17,3 +17,31 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npx tsc --noEmit
+
+  database-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Iniciar Supabase local
+        run: supabase start
+      - name: Validar estrutura RLS
+        run: supabase test db
+      - name: Validar isolamento entre duas contas reais
+        shell: bash
+        run: |
+          eval "$(supabase status -o env)"
+          SUPABASE_URL="$API_URL" \
+          SUPABASE_ANON_KEY="$ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          node tests/rls-isolation.mjs
+      - name: Encerrar Supabase local
+        if: always()
+        run: supabase stop --no-backup
