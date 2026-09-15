@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +79,7 @@ function RedefinirSenha() {
   }
 
   if (estado === 'invalido') {
-    return <main className="min-h-screen grid place-items-center p-4"><section className="card max-w-md"><h1 className="text-xl font-semibold">Link inválido ou expirado</h1><p className="muted mt-2">Solicite um novo link de recuperação para redefinir sua senha com segurança.</p><a className="btn mt-4 inline-flex" href="/auth?modo=recuperar">Solicitar novo link</a></section></main>;
+    return <main className="min-h-screen grid place-items-center p-4"><section className="card max-w-md"><h1 className="text-xl font-semibold">Link inválido ou expirado</h1><p className="muted mt-2">Solicite um novo link de recuperação para redefinir sua senha com segurança.</p><Link className="btn mt-4 inline-flex" to="/auth" search={{ modo: 'recuperar' }}>Solicitar novo link</Link></section></main>;
   }
 
   return <main className="min-h-screen grid place-items-center p-4"><form className="card w-full max-w-md" onSubmit={salvar}><h1 className="text-xl font-semibold">Definir nova senha</h1><p className="muted mt-2">Escolha uma nova senha para sua conta.</p><label className="block mt-4"><span className="label">Nova senha</span><input className="input mt-1" type="password" autoComplete="new-password" value={senha} onChange={e=>setSenha(e.target.value)} /></label><label className="block mt-3"><span className="label">Confirmar nova senha</span><input className="input mt-1" type="password" autoComplete="new-password" value={confirmar} onChange={e=>setConfirmar(e.target.value)} /></label><button className="btn w-full mt-4" disabled={ocupado}>{ocupado ? 'Salvando...' : 'Salvar nova senha'}</button></form></main>;
