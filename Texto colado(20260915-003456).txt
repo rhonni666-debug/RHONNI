@@ -1,0 +1,1632 @@
+PROJETO:
+DIGITAL TWIN RAS — LITOPENAEUS VANNAMEI
+
+Crie uma aplicação web profissional para monitoramento, simulação,
+dimensionamento e operação assistida de um sistema RAS destinado à criação
+de Litopenaeus vannamei, cobrindo:
+
+Náuplio
+→ Zoea
+→ Mysis
+→ Pós-larva
+→ Berçário
+→ Pré-engorda
+→ Engorda
+→ Despesca
+
+O sistema deve funcionar como um GÊMEO DIGITAL.
+
+Isso significa manter dois estados simultâneos:
+
+1. SISTEMA REAL
+   Dados efetivamente medidos pelo produtor.
+
+2. SISTEMA VIRTUAL
+   Estado calculado e previsto matematicamente.
+
+O sistema deve comparar continuamente:
+
+REAL
+versus
+MODELO
+
+e recalibrar progressivamente os parâmetros matemáticos usando os dados
+reais coletados.
+
+====================================================
+PRINCÍPIO FUNDAMENTAL
+====================================================
+
+Nunca transformar estimativa em fato.
+
+Todo número exibido deverá possuir uma classificação:
+
+MEDIDO
+CALCULADO
+ESTIMADO
+PREVISTO
+
+Exemplo:
+
+TAN atual
+1,8 mg/L
+MEDIDO
+
+Capacidade MBBR
+2,3 g TAN-N/dia
+ESTIMADO A PARTIR DOS ÚLTIMOS TESTES
+
+TAN em 24h
+0,8–1,2 mg/L
+PREVISTO
+Confiança: moderada
+
+Não mostrar falsa precisão.
+
+====================================================
+TECNOLOGIA
+====================================================
+
+Python
+Streamlit
+SQLite
+SQLAlchemy
+Pandas
+NumPy
+SciPy
+Plotly
+Pydantic
+Pytest
+
+Separar completamente:
+
+interface
+banco de dados
+motor científico
+motor de previsão
+motor de alertas
+
+A interface nunca deve conter diretamente fórmulas científicas.
+
+====================================================
+ESTRUTURA
+====================================================
+
+app/
+    app.py
+
+pages/
+    dashboard.py
+    cycling.py
+    digital_twin.py
+    water_quality.py
+    mbbr.py
+    larviculture.py
+    nursery.py
+    growout.py
+    feeding.py
+    salinity.py
+    minerals.py
+    biometry.py
+    scenarios.py
+    costs.py
+    reports.py
+    settings.py
+
+core/
+    units.py
+    mass_balance.py
+    ammonia.py
+    nitrite.py
+    nitrate.py
+    nitrification.py
+    alkalinity.py
+    oxygen.py
+    salinity.py
+    minerals.py
+    mbbr.py
+    shrimp_growth.py
+    feeding.py
+    mortality.py
+    biomass.py
+    solids.py
+    calibration.py
+    uncertainty.py
+    prediction.py
+    scenarios.py
+
+database/
+    models.py
+    repository.py
+
+tests/
+    test_ammonia.py
+    test_nitrification.py
+    test_salinity.py
+    test_minerals.py
+    test_mass_balance.py
+    test_growth.py
+    test_units.py
+
+====================================================
+PERFIL INICIAL
+====================================================
+
+Criar um perfil:
+
+RAS CAMARÃO 1100L
+
+Volume circulante inicial:
+1100 litros
+
+Componentes:
+
+Tanque de cultivo
+MBBR
+Decantador
+
+Espécie:
+Litopenaeus vannamei
+
+Situação atual:
+
+Sem camarões
+MBBR em ciclagem
+Água inicialmente doce
+
+Salinidade futura:
+aproximadamente 5 ppt
+
+Dados iniciais:
+
+Dia 0
+TAN > 3 mg/L
+
+Dia 3
+TAN entre 1,5 e 2,5 mg/L
+
+pH:
+7,45
+
+Registrar estes valores como dados históricos iniciais.
+
+====================================================
+MOTOR DE GÊMEO DIGITAL
+====================================================
+
+Criar um objeto central:
+
+DigitalTwinState
+
+Ele deve armazenar:
+
+volume
+temperatura
+pH
+TAN
+NH3
+NH4
+NO2
+NO3
+DO
+alcalinidade
+salinidade
+
+Na
+K
+Ca
+Mg
+Cl
+
+biomassa
+número de animais
+peso médio
+ração diária
+
+capacidade AOB
+capacidade NOB
+capacidade MBBR
+
+sólidos
+trocas de água
+evaporação
+
+Cada variável deve possuir:
+
+valor
+unidade
+timestamp
+origem
+incerteza
+tipo
+
+Tipos:
+
+measured
+calculated
+estimated
+predicted
+
+====================================================
+LINHA DO TEMPO
+====================================================
+
+Usar uma linha do tempo baseada em eventos.
+
+Exemplos:
+
+09:00
+TAN medido = 1,8 ppm
+
+09:05
+50 g NaHCO3 adicionados
+
+12:00
+20 L removidos no decantador
+
+12:10
+20 L de água nova adicionados
+
+16:00
+200 g de ração adicionados
+
+18:00
+5 camarões mortos
+
+Cada evento modifica o estado virtual.
+
+Nunca sobrescrever o histórico.
+
+====================================================
+BALANÇO DE MASSA
+====================================================
+
+O motor principal deve trabalhar com balanço de massa.
+
+Exemplo conceitual:
+
+massa final =
+massa inicial
++ entradas
+- saídas
+± transformações biológicas
+
+Aplicar isso para:
+
+nitrogênio
+sal
+minerais
+água
+biomassa
+ração
+alcalinidade
+
+====================================================
+NITRIFICAÇÃO
+====================================================
+
+Separar:
+
+AOB
+NH4 → NO2
+
+NOB
+NO2 → NO3
+
+Não utilizar uma única taxa fixa.
+
+Criar:
+
+rate_aob_max
+rate_nob_max
+
+e modificadores:
+
+f_temperatura
+f_pH
+f_DO
+f_salinidade
+
+Estrutura:
+
+AOB_rate =
+AOB_max
+× f_temperature
+× f_pH
+× f_DO
+× f_salinity
+× disponibilidade_substrato
+
+O mesmo para NOB.
+
+====================================================
+CALIBRAÇÃO DO MBBR
+====================================================
+
+Inicialmente:
+
+AOB_max = desconhecido
+NOB_max = desconhecido
+
+O sistema deve aprender esses valores usando testes reais.
+
+Exemplo:
+
+TAN:
+2,0 → 1,3 → 0,6 → 0,1 mg/L
+
+tempo:
+0 → 8 → 16 → 24 horas
+
+Estimar:
+
+mg TAN-N/L/h
+
+e:
+
+g TAN-N/dia
+
+Nunca exibir:
+
+"mídia 73% colonizada"
+
+porque isso não pode ser inferido diretamente.
+
+Mostrar:
+
+ESTÁGIO DO BIOFILTRO:
+
+não estabelecido
+atividade inicial
+nitrificação detectada
+biofiltro ativo
+biofiltro estabilizado
+capacidade validada
+
+====================================================
+TESTE DE DESAFIO DO MBBR
+====================================================
+
+Criar botão:
+
+INICIAR TESTE DE CAPACIDADE
+
+Registrar:
+
+TAN inicial
+NO2 inicial
+NO3 inicial
+pH
+temperatura
+salinidade
+hora
+
+Permitir novas medições.
+
+Calcular automaticamente:
+
+taxa AOB
+taxa NOB
+
+tempo para remoção de:
+
+50%
+75%
+90%
+95%
+
+da carga.
+
+Mostrar gráfico.
+
+====================================================
+VALIDAÇÃO DO MODELO
+====================================================
+
+Após cada nova medição:
+
+comparar previsão anterior com valor real.
+
+Exemplo:
+
+Previsto:
+TAN 0,9–1,3
+
+Medido:
+1,1
+
+Resultado:
+previsão dentro do intervalo.
+
+Armazenar erro.
+
+Calcular:
+
+MAE
+RMSE
+erro percentual
+
+por variável.
+
+Mostrar:
+
+Precisão atual do modelo TAN:
+boa
+
+Precisão NO2:
+baixa
+
+Motivo:
+apenas 4 medições disponíveis.
+
+====================================================
+INCERTEZA
+====================================================
+
+Toda previsão precisa de intervalo.
+
+Exemplo:
+
+TAN 24h:
+
+melhor estimativa:
+0,8 mg/L
+
+intervalo provável:
+0,5–1,2 mg/L
+
+confiança:
+moderada
+
+A confiança deve depender de:
+
+quantidade de medições
+variabilidade
+qualidade dos dados
+erro histórico do modelo
+tempo desde a última medição
+
+====================================================
+LEITURAS COLORIMÉTRICAS
+====================================================
+
+Permitir intervalos.
+
+Exemplo:
+
+TAN:
+1,5 a 2,5 ppm
+
+Não transformar automaticamente em exatamente 2,0.
+
+O motor deve poder propagar a incerteza.
+
+Exemplo:
+
+entrada:
+1,5–2,5
+
+previsão:
+0,7–1,6
+
+====================================================
+CICLO BIOLÓGICO
+====================================================
+
+Criar estágios independentes:
+
+NAUPLIUS
+Z1
+Z2
+Z3
+M1
+M2
+M3
+PL1...
+PL20
+BERÇÁRIO
+PRÉ-ENGORDA
+ENGORDA
+DESPESCA
+
+Cada fase terá:
+
+parâmetros biológicos próprios
+alimentação própria
+densidade própria
+sensibilidade própria
+modelo de crescimento próprio
+
+NÃO utilizar o mesmo modelo de engorda para larvicultura.
+
+====================================================
+TRANSIÇÃO DE ESTÁGIO
+====================================================
+
+Não avançar automaticamente apenas por idade.
+
+Usar:
+
+idade
+peso
+comprimento
+observação morfológica
+alimentação
+confirmação humana
+
+Mostrar:
+
+"Possível transição detectada"
+
+e pedir confirmação.
+
+====================================================
+LOTE
+====================================================
+
+Cada lote deverá possuir:
+
+ID
+origem
+laboratório
+data de entrada
+estágio de entrada
+quantidade
+peso
+comprimento
+salinidade de origem
+temperatura de origem
+histórico sanitário
+observações
+
+Permitir vários lotes.
+
+====================================================
+ACLIMATAÇÃO
+====================================================
+
+Criar módulo:
+
+ORIGEM
+
+salinidade
+temperatura
+pH
+
+DESTINO
+
+salinidade
+temperatura
+pH
+
+Registrar medições ao longo do tempo.
+
+Gerar gráfico.
+
+Nunca recomendar automaticamente uma mudança brusca de salinidade.
+
+Criar protocolo configurável.
+
+====================================================
+QUALIDADE DE ÁGUA
+====================================================
+
+Monitorar:
+
+temperatura
+pH
+TAN
+NH3
+NH4
+NO2
+NO3
+DO
+salinidade
+alcalinidade
+dureza
+Ca
+Mg
+K
+Na
+Cl
+TSS
+turbidez
+ORP
+
+Não hardcodar silenciosamente limites biológicos.
+
+Criar tabela:
+
+reference_ranges
+
+com:
+
+espécie
+fase
+variável
+mínimo
+ideal_min
+ideal_max
+máximo
+fonte
+observações
+
+====================================================
+NH3 NÃO IONIZADA
+====================================================
+
+Calcular NH3 usando:
+
+TAN
+pH
+temperatura
+salinidade
+
+Mostrar claramente:
+
+TAN MEDIDO
+NH3 CALCULADA
+
+Nunca tratá-las como mesma variável.
+
+====================================================
+SALINIDADE
+====================================================
+
+Criar calculadora de salinização usando volume real.
+
+Produtos possíveis:
+
+NaCl
+KCl
+MgCl2·6H2O
+MgSO4·7H2O
+CaCl2
+NaHCO3
+
+Registrar:
+
+pureza
+forma química
+massa molar
+preço
+
+Calcular:
+
+salinidade
+Na
+K
+Mg
+Ca
+Cl
+
+====================================================
+MINERAIS
+====================================================
+
+Usar este princípio:
+
+mg/L do íon =
+massa do produto
+× pureza
+× fração molar do íon
+÷ volume
+
+Implementar usando massa molar real.
+
+Criar testes unitários.
+
+====================================================
+PROTOCOLO DE SALINIZAÇÃO DO BIOFILTRO
+====================================================
+
+Permitir etapas:
+
+0
+→ 2
+→ 4
+→ 5 ppt
+
+Comparar capacidade MBBR antes e depois.
+
+Exemplo:
+
+antes:
+1,7 g TAN-N/dia
+
+após 4 ppt:
+1,3 g TAN-N/dia
+
+mostrar:
+
+queda observada:
+24%
+
+Não concluir que salinidade foi a causa definitiva.
+
+Mostrar:
+
+"Alteração temporal associada à mudança de salinidade."
+
+====================================================
+ALCALINIDADE
+====================================================
+
+Usar como referência inicial configurável:
+
+aproximadamente
+7,14 g de alcalinidade expressa como CaCO3
+
+por:
+
+1 g de NH4-N nitrificado.
+
+Separar:
+
+consumo estimado
+medição real
+
+Calcular necessidade estimada de NaHCO3.
+
+Nunca aplicar dose automaticamente.
+
+====================================================
+OXIGÊNIO
+====================================================
+
+Usar como referência configurável:
+
+aproximadamente
+4,57 g O2
+
+por:
+
+1 g NH4-N oxidado.
+
+Adicionar posteriormente:
+
+respiração dos camarões
+matéria orgânica
+biofilme
+
+DO medido deve ter prioridade sobre estimativas.
+
+====================================================
+MBBR
+====================================================
+
+Cadastrar:
+
+volume do reator
+litros de mídia
+modelo da mídia
+SSA
+enchimento
+vazão
+aeração
+
+Calcular:
+
+área superficial teórica
+
+mas separar claramente:
+
+CAPACIDADE TEÓRICA
+CAPACIDADE OBSERVADA
+
+====================================================
+DECANTADOR
+====================================================
+
+Cadastrar:
+
+volume
+vazão
+tempo de retenção
+frequência de purga
+volume removido
+
+Registrar:
+
+lodo
+cor
+odor
+volume
+
+Toda purga deve alterar balanço de:
+
+água
+sal
+NO3
+minerais
+
+====================================================
+EVAPORAÇÃO
+====================================================
+
+Criar evento específico:
+
+REPOSIÇÃO POR EVAPORAÇÃO
+
+Não considerar como troca de água.
+
+Ao evaporar:
+
+água diminui
+sais permanecem
+
+Ao repor água doce:
+
+volume aumenta
+salinidade diminui
+
+====================================================
+LARVICULTURA
+====================================================
+
+Criar alimentação própria.
+
+Permitir:
+
+microalgas
+Artemia
+microdietas
+outros
+
+Registrar:
+
+tipo
+quantidade
+concentração
+frequência
+horários
+
+Não obrigar uso de % de biomassa.
+
+====================================================
+BERÇÁRIO E ENGORDA
+====================================================
+
+Calcular:
+
+quantidade
+peso médio
+biomassa
+animais/m³
+kg/m³
+
+Biomassa:
+
+quantidade viva × peso médio
+
+====================================================
+BIOMETRIA
+====================================================
+
+Permitir entrada dos pesos individuais.
+
+Calcular:
+
+média
+mediana
+mínimo
+máximo
+desvio padrão
+CV
+percentis
+
+Criar histograma.
+
+====================================================
+UNIFORMIDADE
+====================================================
+
+Utilizar CV.
+
+Não classificar apenas visualmente.
+
+Permitir configuração dos limites.
+
+====================================================
+CRESCIMENTO
+====================================================
+
+Calcular:
+
+ADG
+
+SGR
+
+curva de crescimento
+
+Comparar:
+
+crescimento observado
+crescimento previsto
+
+====================================================
+ALIMENTAÇÃO
+====================================================
+
+Cadastrar ração:
+
+fabricante
+produto
+proteína
+lipídios
+umidade
+tamanho
+preço/kg
+
+Registrar:
+
+ração ofertada
+ração estimada consumida
+
+Nunca assumir que toda ração ofertada foi consumida.
+
+====================================================
+BANDEJAS
+====================================================
+
+Registrar:
+
+quantidade colocada
+hora
+quantidade restante
+tempo
+
+Calcular:
+
+% sobra
+
+Sugerir:
+
+manter
+reduzir
+aumentar
+
+Mas nunca alterar alimentação automaticamente.
+
+====================================================
+FCR
+====================================================
+
+Calcular:
+
+FCR ofertado
+
+e, se possível:
+
+FCR consumido
+
+Não misturar os dois.
+
+====================================================
+MODELO DE NITROGÊNIO DA RAÇÃO
+====================================================
+
+Entradas configuráveis:
+
+proteína da ração
+N na proteína
+retenção pelo camarão
+fração excretada
+
+Calcular:
+
+N ingerido
+N retido
+N excretado
+TAN potencial
+
+Não usar coeficiente universal fixo.
+
+====================================================
+INTERAÇÃO RAÇÃO → MBBR
+====================================================
+
+Mostrar:
+
+TAN previsto pela produção
+
+versus
+
+capacidade observada do MBBR
+
+Exemplo:
+
+Carga:
+1,5 g TAN-N/dia
+
+MBBR:
+2,5 g TAN-N/dia
+
+uso:
+60%
+
+margem:
+40%
+
+====================================================
+MORTALIDADE
+====================================================
+
+Registrar diariamente.
+
+Mostrar:
+
+número
+%
+acumulado
+sobrevivência
+
+Detectar aumentos anormais.
+
+====================================================
+MUDA
+====================================================
+
+Registrar:
+
+baixa
+moderada
+alta
+
+ou percentual.
+
+Cruzar com:
+
+consumo
+crescimento
+qualidade de água
+mortalidade
+
+Sem afirmar causalidade automaticamente.
+
+====================================================
+SIMULAÇÕES
+====================================================
+
+Criar módulo:
+
+E SE?
+
+Exemplos:
+
+E se eu colocar 200 camarões?
+
+300?
+
+500?
+
+E se chegarem a 15 g?
+
+E se a sobrevivência for 75%?
+
+E se o MBBR perder 30% de capacidade?
+
+E se o pH cair?
+
+E se eu passar de 5 para 8 ppt?
+
+E se a temperatura cair 4°C?
+
+====================================================
+MONTE CARLO
+====================================================
+
+Adicionar simulação probabilística opcional.
+
+Variáveis:
+
+crescimento
+sobrevivência
+FCR
+capacidade MBBR
+temperatura
+
+Executar múltiplos cenários.
+
+Mostrar:
+
+P10
+P50
+P90
+
+Exemplo:
+
+Biomassa final:
+
+P10:
+5,8 kg
+
+P50:
+6,7 kg
+
+P90:
+7,4 kg
+
+Isso deve substituir previsões excessivamente exatas.
+
+====================================================
+PREVISÕES
+====================================================
+
+Criar horizontes:
+
+6h
+12h
+24h
+48h
+72h
+
+Para água.
+
+E:
+
+7 dias
+15 dias
+30 dias
+despesca
+
+Para produção.
+
+====================================================
+DETECÇÃO DE ANOMALIAS
+====================================================
+
+Criar módulo simples para detectar mudanças inesperadas.
+
+Exemplo:
+
+TAN vinha caindo 0,6 mg/L/dia.
+
+Nas últimas 24h caiu apenas 0,1.
+
+Mostrar:
+
+"ATIVIDADE DO BIOFILTRO ABAIXO DO PADRÃO RECENTE."
+
+Possíveis fatores para verificar:
+
+pH
+DO
+temperatura
+salinidade
+alcalinidade
+
+Não afirmar causa automaticamente.
+
+====================================================
+ALERTAS
+====================================================
+
+Níveis:
+
+INFO
+ATENÇÃO
+CRÍTICO
+
+Mostrar:
+
+o que aconteceu
+valor medido
+tendência
+limite configurado
+possíveis fatores
+ação de verificação
+
+Nunca executar correção química automaticamente.
+
+====================================================
+RECOMENDAÇÕES
+====================================================
+
+Toda recomendação deve mostrar:
+
+AÇÃO SUGERIDA
+
+MOTIVO
+
+DADOS UTILIZADOS
+
+CONFIANÇA
+
+Exemplo:
+
+AÇÃO:
+Não adicionar nova amônia.
+
+MOTIVO:
+TAN ainda medido entre 1,5 e 2,5 mg/L.
+
+BASE:
+última leitura + estágio de ciclagem.
+
+CONFIANÇA:
+alta.
+
+====================================================
+CUSTOS
+====================================================
+
+Registrar:
+
+PL
+ração
+Artemia
+microalgas
+energia
+água
+sal
+KCl
+MgCl2
+MgSO4
+CaCl2
+NaHCO3
+testes
+mão de obra
+manutenção
+
+Calcular:
+
+custo/dia
+custo/ciclo
+custo/kg
+break-even
+margem
+
+====================================================
+DESPESCA
+====================================================
+
+Registrar:
+
+quantidade
+peso médio
+biomassa
+dias
+ração total
+FCR
+sobrevivência
+
+Gerar relatório completo.
+
+====================================================
+RELATÓRIO DO GÊMEO DIGITAL
+====================================================
+
+No final do ciclo mostrar:
+
+Desempenho biológico
+Desempenho MBBR
+Qualidade da água
+Consumo de minerais
+Ração
+Energia
+Custos
+Produção
+
+E também:
+
+PRECISÃO DO MODELO
+
+Exemplo:
+
+TAN MAE:
+0,18 mg/L
+
+NO2 MAE:
+0,27 mg/L
+
+Peso MAE:
+0,42 g
+
+Sobrevivência:
+erro 4,2%
+
+====================================================
+APRENDIZADO ENTRE CICLOS
+====================================================
+
+Não usar machine learning complexo inicialmente.
+
+Primeiro utilizar:
+
+calibração de parâmetros
+regressão
+médias móveis
+modelos cinéticos
+balanço de massa
+
+Depois de vários ciclos e quantidade suficiente de dados:
+
+habilitar modelos estatísticos/ML.
+
+Nunca treinar modelos sofisticados com poucos dados.
+
+====================================================
+SENSORES FUTUROS
+====================================================
+
+Preparar endpoint API para ESP32.
+
+Sensores possíveis:
+
+temperatura
+pH
+DO
+condutividade/salinidade
+ORP
+nível
+
+Formato:
+
+timestamp
+sensor_id
+variable
+value
+unit
+
+====================================================
+INTERFACE DIGITAL TWIN
+====================================================
+
+Criar uma tela especial dividida em duas colunas.
+
+ESQUERDA:
+
+SISTEMA REAL
+
+TAN
+NO2
+NO3
+pH
+DO
+temperatura
+salinidade
+
+DIREITA:
+
+GÊMEO DIGITAL
+
+valores estimados para o mesmo horário.
+
+No centro mostrar:
+
+DIFERENÇA
+
+Exemplo:
+
+TAN
+
+REAL:
+1,8
+
+MODELO:
+1,65
+
+ERRO:
++0,15 mg/L
+
+====================================================
+TIMELINE GRÁFICA
+====================================================
+
+No gráfico mostrar:
+
+pontos = medições reais
+
+linha contínua = modelo
+
+área sombreada = intervalo de confiança
+
+eventos verticais:
+
+amônia adicionada
+bicarbonato
+sal
+ração
+troca de água
+mortalidade
+mudança de salinidade
+
+====================================================
+REGRAS DE SEGURANÇA DO SOFTWARE
+====================================================
+
+Nunca:
+
+inventar medição
+alterar dosagem automaticamente
+prescrever medicamento
+considerar estimativa como sensor
+apagar histórico
+ocultar incerteza
+extrapolar muito além dos dados sem aviso
+
+====================================================
+VALIDAÇÃO DE DADOS
+====================================================
+
+Antes de aceitar entrada:
+
+validar unidade
+valor negativo
+valor impossível
+duplicidade
+horário
+volume
+
+Exemplo:
+
+pH 75
+deve gerar erro.
+
+TAN -2 mg/L
+deve gerar erro.
+
+====================================================
+UNIDADES
+====================================================
+
+Criar sistema centralizado de conversão.
+
+Suportar:
+
+mg/L
+g/L
+ppt
+ppm
+g
+kg
+L
+m³
+g/dia
+mg/L/h
+animais/L
+animais/m³
+kg/m³
+
+Nunca realizar conversão manual espalhada pelo código.
+
+====================================================
+BACKUP
+====================================================
+
+Criar:
+
+exportação CSV
+backup SQLite
+importação de backup
+
+====================================================
+DESENVOLVIMENTO POR ETAPAS
+====================================================
+
+NÃO implementar tudo de uma vez.
+
+SPRINT 1
+
+banco
+eventos
+dashboard
+TAN
+NO2
+NO3
+pH
+temperatura
+MBBR
+histórico
+
+SPRINT 2
+
+motor de balanço de massa
+nitrificação
+teste MBBR
+digital twin básico
+comparação real x modelo
+
+SPRINT 3
+
+salinidade
+minerais
+alcalinidade
+oxigênio
+decantador
+
+SPRINT 4
+
+lotes
+larvicultura
+PL
+berçário
+
+SPRINT 5
+
+engorda
+biometria
+ração
+FCR
+nitrogênio
+
+SPRINT 6
+
+simulação
+Monte Carlo
+custos
+relatórios
+
+SPRINT 7
+
+sensores
+ESP32
+API
+automação de coleta
+
+====================================================
+PRIMEIRA ENTREGA
+====================================================
+
+Na primeira execução criar:
+
+RAS Camarão 1100L
+
+e apresentar:
+
+DIA 3 DE CICLAGEM
+
+TAN:
+1,5–2,5 mg/L
+
+pH:
+7,45
+
+MBBR:
+atividade em avaliação
+
+salinidade:
+0 ppt
+
+Camarões:
+0
+
+Próxima informação necessária:
+
+NO2
+NO3
+temperatura
+alcalinidade
+
+Não inventar esses valores.
+
+Criar imediatamente gráficos de histórico de:
+
+TAN
+pH
+
+e deixar espaço para os demais parâmetros.
+
+====================================================
+OBJETIVO FINAL
+====================================================
+
+O objetivo NÃO é apenas registrar a criação.
+
+O objetivo é que, após vários dias e ciclos, o sistema consiga conhecer
+o comportamento específico deste RAS.
+
+Ele deverá aprender, com incerteza explícita:
+
+quanto TAN o MBBR processa
+quanto tempo leva para recuperar após mudança de salinidade
+quanto a temperatura afeta o sistema
+quanto a alimentação gera de carga
+qual biomassa o sistema consegue suportar
+qual crescimento é normalmente obtido
+qual FCR é normalmente obtido
+qual margem operacional é segura
+
+O modelo deverá ficar progressivamente mais personalizado com dados reais,
+sem substituir medições por previsões.
